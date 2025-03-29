@@ -54,7 +54,7 @@ public class ProductionHouseService {
             return;
         }
 
-        List<WebSeries> webSeriesList = webSeriesRepository.findByProductionHouseId(productionHouseId);
+        List<WebSeries> webSeriesList = webSeriesRepository.findByProductionHouse(productionHouseId);
         if(webSeriesList.isEmpty()) {
             productionHouse.setRatings(0);
             productionHouseRepository.save(productionHouse);

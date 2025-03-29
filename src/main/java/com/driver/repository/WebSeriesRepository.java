@@ -8,5 +8,5 @@ import java.util.List;
 public interface WebSeriesRepository extends JpaRepository<WebSeries,Integer> {
 
     WebSeries findBySeriesName(String seriesName);
-    List<WebSeries> findByProductionHouseId( int productionHouseId);
+    List<WebSeries> findByProductionHouse( int productionHouseId);
 }
