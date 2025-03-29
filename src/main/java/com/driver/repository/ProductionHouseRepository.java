@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProductionHouseRepository extends JpaRepository<ProductionHouse, Integer> {
-    // Custom query to find by name
-    ProductionHouse findByName(String name);
+public interface ProductionHouseRepository extends JpaRepository<ProductionHouse,Integer> {
+
 }
