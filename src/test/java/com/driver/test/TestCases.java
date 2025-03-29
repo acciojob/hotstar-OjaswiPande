@@ -23,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,8 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -39,4 +39,28 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class TestCases {
 
-}
+        // Assuming you have setup a webseries with the name "The Crown"
+        @Mock
+        private WebSeriesRepository webSeriesRepository;  // ✅ Change from @Autowired to @Mock
+
+        @Test
+        public void testFindWebSeriesByName() {
+            // Arrange: Mock repository behavior
+            String seriesName = "Sample Series"; // Ensure a string value
+
+            WebSeries mockWebSeries = new WebSeries();
+            mockWebSeries.setSeriesName(seriesName);
+
+            when(webSeriesRepository.findBySeriesName(seriesName)).thenReturn(mockWebSeries);
+
+            // Act: Call the method under test
+            System.out.println("Type of variable: " + seriesName.getClass().getName());
+
+            WebSeries foundWebSeries = webSeriesRepository.findBySeriesName(seriesName);
+
+            // Assert: Verify the output
+            assertNotNull(foundWebSeries);
+            assertEquals(seriesName, foundWebSeries.getSeriesName()); // ✅ Add an assertion to confirm correct series
+        }
+    }
+
