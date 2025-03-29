@@ -1,52 +1,49 @@
 package com.driver.controllers;
 
-
 import com.driver.EntryDto.SubscriptionEntryDto;
 import com.driver.services.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("subscription")
+@RequestMapping("/subscription")
 public class SubscriptionController {
 
     @Autowired
-    SubscriptionService subscriptionService;
+    private SubscriptionService subscriptionService;
 
     @PostMapping("/buy")
-    public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
-
-        //We need to buy subscription and save its relevant subscription to the db and return the finalAmount
-
-        return subscriptionService.buySubscription(subscriptionEntryDto);
+    public ResponseEntity<Integer> buySubscription(@RequestBody SubscriptionEntryDto subscriptionEntryDto) {
+        try {
+            Integer totalAmount = subscriptionService.buySubscription(subscriptionEntryDto);
+            return new ResponseEntity<>(totalAmount, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(-1, HttpStatus.BAD_REQUEST);
+        }
     }
 
-
     @PutMapping("/upgradeSubscription/{userId}")
-    public Integer upgradeSubscription(@PathVariable("userId")Integer userId){
-
-        //In this function you need to upgrade the subscription to  its next level
-        //ie if You are A BASIC subscriber update to PRO and if You are a PRO upgrade to ELITE.
-        //Incase you are already an ELITE member throw an Exception
-        //and at the end return the difference in fare that you need to pay to get this subscription done.
-        try{
-            return subscriptionService.upgradeSubscription(userId);
-        }catch (Exception e){
-            return -1;
+    public ResponseEntity<Integer> upgradeSubscription(@PathVariable Integer userId) {
+        try {
+            Integer priceDifference = subscriptionService.upgradeSubscription(userId);
+            return new ResponseEntity<>(priceDifference, HttpStatus.OK);
+        } catch (Exception e) {
+            if (e.getMessage().contains("Already the best Subscription")) {
+                return new ResponseEntity<>(-1, HttpStatus.CONFLICT);
+            }
+            return new ResponseEntity<>(-1, HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping("/calculateTotalRevenue")
-    public Integer getTotalRevenue(){
-
-        //Calculate the total Revenue of hot-star from all the Users combined...
-        return subscriptionService.calculateTotalRevenueOfHotstar();
-
+    public ResponseEntity<Integer> getTotalRevenue() {
+        try {
+            Integer totalRevenue = subscriptionService.calculateTotalRevenueOfHotstar();
+            return new ResponseEntity<>(totalRevenue, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(-1, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-
 }

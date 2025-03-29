@@ -1,6 +1,8 @@
 package com.driver.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -29,6 +31,7 @@ public class WebSeries {
 
     @ManyToOne
     @JoinColumn
+    @JsonBackReference
     private ProductionHouse productionHouse;
 
     public WebSeries(String seriesName, int ageLimit, double rating, SubscriptionType subscriptionType) {
@@ -88,5 +91,23 @@ public class WebSeries {
 
     public void setProductionHouse(ProductionHouse productionHouse) {
         this.productionHouse = productionHouse;
+    }
+    public boolean isAccessibleWith(SubscriptionType userSubscriptionType) {
+        if (userSubscriptionType == null) return false;
+
+        // ELITE subscribers can access all content
+        if (userSubscriptionType == SubscriptionType.ELITE) {
+            return true;
+        }
+        // PRO subscribers can access PRO and BASIC content
+        else if (userSubscriptionType == SubscriptionType.PRO) {
+            return this.subscriptionType == SubscriptionType.PRO ||
+                    this.subscriptionType == SubscriptionType.BASIC;
+        }
+        // BASIC subscribers can only access BASIC content
+        else if (userSubscriptionType == SubscriptionType.BASIC) {
+            return this.subscriptionType == SubscriptionType.BASIC;
+        }
+        return false;
     }
 }

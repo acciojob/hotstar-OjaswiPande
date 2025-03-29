@@ -1,6 +1,5 @@
 package com.driver.services;
 
-
 import com.driver.EntryDto.SubscriptionEntryDto;
 import com.driver.model.Subscription;
 import com.driver.model.SubscriptionType;
@@ -22,28 +21,88 @@ public class SubscriptionService {
     @Autowired
     UserRepository userRepository;
 
-    public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
+    public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto) {
+        // Get the user
+        User user = userRepository.findById(subscriptionEntryDto.getUserId()).orElse(null);
+        if (user == null) {
+            return -1; // or throw exception
+        }
 
-        //Save The subscription Object into the Db and return the total Amount that user has to pay
+        // Create new subscription
+        Subscription subscription = new Subscription();
+        subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
+        subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
+        subscription.setStartSubscriptionDate(new Date());
+        subscription.setTotalAmountPaid(calculateTotalAmount(
+                subscriptionEntryDto.getSubscriptionType(),
+                subscriptionEntryDto.getNoOfScreensRequired()
+        ));
+        subscription.setUser(user);
 
-        return null;
+        // Save subscription
+        Subscription savedSubscription = subscriptionRepository.save(subscription);
+
+        // Update user's subscription
+        user.setSubscription(savedSubscription);
+        userRepository.save(user);
+
+        return savedSubscription.getTotalAmountPaid();
     }
 
-    public Integer upgradeSubscription(Integer userId)throws Exception{
+    public Integer upgradeSubscription(Integer userId) throws Exception {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null || user.getSubscription() == null) {
+            throw new Exception("User or subscription not found");
+        }
 
-        //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
-        //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
-        //update the subscription in the repository
+        Subscription currentSubscription = user.getSubscription();
 
-        return null;
+        // Check if already ELITE
+        if (currentSubscription.getSubscriptionType() == SubscriptionType.ELITE) {
+            throw new Exception("Already the best Subscription");
+        }
+
+        SubscriptionType newType;
+        int priceDifference;
+
+        if (currentSubscription.getSubscriptionType() == SubscriptionType.BASIC) {
+            newType = SubscriptionType.PRO;
+            priceDifference = (800 + 250 * currentSubscription.getNoOfScreensSubscribed()) -
+                    currentSubscription.getTotalAmountPaid();
+        } else { // PRO to ELITE
+            newType = SubscriptionType.ELITE;
+            priceDifference = (1000 + 350 * currentSubscription.getNoOfScreensSubscribed()) -
+                    currentSubscription.getTotalAmountPaid();
+        }
+
+        // Update subscription
+        currentSubscription.setSubscriptionType(newType);
+        currentSubscription.setTotalAmountPaid(calculateTotalAmount(
+                newType,
+                currentSubscription.getNoOfScreensSubscribed()
+        ));
+        subscriptionRepository.save(currentSubscription);
+
+        return priceDifference;
     }
 
-    public Integer calculateTotalRevenueOfHotstar(){
-
-        //We need to find out total Revenue of hotstar : from all the subscriptions combined
-        //Hint is to use findAll function from the SubscriptionDb
-
-        return null;
+    public Integer calculateTotalRevenueOfHotstar() {
+        List<Subscription> subscriptions = subscriptionRepository.findAll();
+        return subscriptions.stream()
+                .mapToInt(Subscription::getTotalAmountPaid)
+                .sum();
     }
 
+    private Integer calculateTotalAmount(SubscriptionType type, int noOfScreens) {
+        switch (type) {
+            case BASIC:
+                return 500 + 200 * noOfScreens;
+            case PRO:
+                return 800 + 250 * noOfScreens;
+            case ELITE:
+                return 1000 + 350 * noOfScreens;
+            default:
+                return 0;
+        }
+    }
 }

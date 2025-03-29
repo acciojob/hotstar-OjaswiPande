@@ -88,4 +88,21 @@ public class Subscription {
     public void setUser(User user) {
         this.user = user;
     }
+
+    public int calculateTotalAmount() {
+        switch (this.subscriptionType) {
+            case BASIC:
+                return 500 + 200 * this.noOfScreensSubscribed;
+            case PRO:
+                return 800 + 250 * this.noOfScreensSubscribed;
+            case ELITE:
+                return 1000 + 350 * this.noOfScreensSubscribed;
+            default:
+                return 0;
+        }
+    }
+
+    public void updateTotalAmountBasedOnTypeAndScreens() {
+        this.totalAmountPaid = this.calculateTotalAmount();
+    }
 }

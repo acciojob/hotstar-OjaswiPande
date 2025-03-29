@@ -59,4 +59,26 @@ public class ProductionHouse {
     public void setRatings(double ratings) {
         this.ratings = ratings;
     }
+
+    public void calculateAndUpdateAverageRating() {
+        if (webSeriesList == null || webSeriesList.isEmpty()) {
+            this.ratings = 0;
+            return;
+        }
+
+        double sum = 0;
+        for (WebSeries webSeries : webSeriesList) {
+            sum += webSeries.getRating();
+        }
+        this.ratings = sum / webSeriesList.size();
+    }
+
+    public void addWebSeries(WebSeries webSeries) {
+        if (webSeriesList == null) {
+            webSeriesList = new ArrayList<>();
+        }
+        webSeriesList.add(webSeries);
+        webSeries.setProductionHouse(this);
+        calculateAndUpdateAverageRating();
+    }
 }

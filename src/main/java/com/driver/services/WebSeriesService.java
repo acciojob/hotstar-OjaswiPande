@@ -8,6 +8,8 @@ import com.driver.repository.WebSeriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class WebSeriesService {
 
@@ -17,14 +19,52 @@ public class WebSeriesService {
     @Autowired
     ProductionHouseRepository productionHouseRepository;
 
-    public Integer addWebSeries(WebSeriesEntryDto webSeriesEntryDto)throws  Exception{
+    public Integer addWebSeries(WebSeriesEntryDto webSeriesEntryDto) throws Exception {
+        // Check if web series already exists by checking all series names
+        List<WebSeries> allWebSeries = webSeriesRepository.findAll();
+        boolean seriesExists = allWebSeries.stream()
+                .anyMatch(ws -> ws.getSeriesName().equals(webSeriesEntryDto.getSeriesName()));
 
-        //Add a webSeries to the database and update the ratings of the productionHouse
-        //Incase the seriesName is already present in the Db throw Exception("Series is already present")
-        //use function written in Repository Layer for the same
-        //Dont forget to save the production and webseries Repo
+        if (seriesExists) {
+            throw new Exception("Series is already present");
+        }
 
-        return null;
+        // Get production house
+        ProductionHouse productionHouse = productionHouseRepository
+                .findById(webSeriesEntryDto.getProductionHouseId())
+                .orElseThrow(() -> new Exception("Production House not found"));
+
+        // Create new web series
+        WebSeries webSeries = new WebSeries();
+        webSeries.setSeriesName(webSeriesEntryDto.getSeriesName());
+        webSeries.setAgeLimit(webSeriesEntryDto.getAgeLimit());
+        webSeries.setRating(webSeriesEntryDto.getRating());
+        webSeries.setSubscriptionType(webSeriesEntryDto.getSubscriptionType());
+        webSeries.setProductionHouse(productionHouse);
+
+        // Save web series
+        WebSeries savedWebSeries = webSeriesRepository.save(webSeries);
+
+        // Update production house's web series list
+        productionHouse.getWebSeriesList().add(savedWebSeries);
+
+        // Recalculate and update production house ratings
+        updateProductionHouseRatings(productionHouse);
+
+        return savedWebSeries.getId();
     }
 
+    private void updateProductionHouseRatings(ProductionHouse productionHouse) {
+        List<WebSeries> webSeriesList = productionHouse.getWebSeriesList();
+        if (webSeriesList.isEmpty()) {
+            productionHouse.setRatings(0);
+        } else {
+            double average = webSeriesList.stream()
+                    .mapToDouble(WebSeries::getRating)
+                    .average()
+                    .orElse(0.0);
+            productionHouse.setRatings(average);
+        }
+        productionHouseRepository.save(productionHouse);
+    }
 }

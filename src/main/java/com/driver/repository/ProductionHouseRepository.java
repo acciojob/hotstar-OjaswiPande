@@ -2,7 +2,10 @@ package com.driver.repository;
 
 import com.driver.model.ProductionHouse;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface ProductionHouseRepository extends JpaRepository<ProductionHouse,Integer> {
-
+@Repository
+public interface ProductionHouseRepository extends JpaRepository<ProductionHouse, Integer> {
+    // Custom query to find by name
+    ProductionHouse findByName(String name);
 }

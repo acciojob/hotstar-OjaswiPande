@@ -11,7 +11,7 @@ import javax.persistence.Table;
 import java.util.List;
 
 @Entity
-@Table(name="user")
+@Table(name = "\"user\"")
 public class User {
 
     @Id
@@ -86,5 +86,36 @@ public class User {
 
     public void setSubscription(Subscription subscription) {
         this.subscription = subscription;
+    }
+
+    public boolean canWatchContent(SubscriptionType requiredSubscriptionType) {
+        if (subscription == null) {
+            return false;
+        }
+
+        SubscriptionType userSubscription = subscription.getSubscriptionType();
+
+        // ELITE can watch everything
+        if (userSubscription == SubscriptionType.ELITE) {
+            return true;
+        }
+        // PRO can watch PRO and BASIC
+        else if (userSubscription == SubscriptionType.PRO) {
+            return requiredSubscriptionType == SubscriptionType.PRO ||
+                    requiredSubscriptionType == SubscriptionType.BASIC;
+        }
+        // BASIC can only watch BASIC
+        else if (userSubscription == SubscriptionType.BASIC) {
+            return requiredSubscriptionType == SubscriptionType.BASIC;
+        }
+        return false;
+    }
+
+    // NEW METHOD: Checks if user can watch a specific web series
+    public boolean canWatchWebSeries(WebSeries webSeries) {
+        if (subscription == null || webSeries == null) {
+            return false;
+        }
+        return canWatchContent(webSeries.getSubscriptionType());
     }
 }
