@@ -13,6 +13,7 @@ public interface WebSeriesRepository extends JpaRepository<WebSeries, Integer> {
 
     // Custom query to find web series by production house
     List<WebSeries> findByProductionHouseId(int productionHouseId);
+    WebSeries findBySeriesName(String seriesName);
 
     // Custom query to find web series by minimum rating
     List<WebSeries> findByRatingGreaterThanEqual(double minRating);
